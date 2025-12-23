@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>100-Question Advanced English Test (Level 5)</title>
+    <style>
+        :root { --primary: #1a2a6c; --success: #2ecc71; --error: #e74c3c; --bg: #f5f6fa; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); padding: 10px; color: #2f3640; }
+        .wrapper { max-width: 900px; margin: 20px auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: var(--primary); letter-spacing: 1px; }
+        .meta-info { text-align: center; color: #7f8c8d; margin-bottom: 30px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .section-header { background: var(--primary); color: white; padding: 10px 20px; border-radius: 5px; margin: 40px 0 20px; font-weight: bold; }
+        .q-item { margin-bottom: 25px; padding: 15px; border-radius: 10px; border-left: 5px solid #dcdde1; background: #fff; }
+        .q-text { font-size: 1.1rem; font-weight: 600; margin-bottom: 12px; line-height: 1.4; }
+        .options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .opt { display: flex; align-items: center; padding: 12px; border: 1px solid #dcdde1; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+        .opt:hover { background: #f1f2f6; border-color: var(--primary); }
+        .opt input { margin-right: 10px; }
+        
+        /* 回饋樣式 */
+        .is-correct { background: #dff9fb !important; border-color: var(--success) !important; color: #0984e3; }
+        .is-wrong { background: #ffeaa7 !important; border-color: var(--error) !important; }
+        .ans-hint { display: none; margin-top: 10px; font-weight: bold; font-size: 0.9rem; }
+
+        .submit-area { position: sticky; bottom: 20px; text-align: center; }
+        .btn-submit { padding: 15px 50px; background: var(--primary); color: white; border: none; border-radius: 30px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+        #score-screen { display: none; text-align: center; padding: 40px; margin-top: 20px; border: 4px double var(--primary); border-radius: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <h1>Advanced Mastery English Test</h1>
+    <div class="meta-info">難度指標：Level 5 (B2-C1) | 題數：100 題</div>
+
+    <div id="quiz-content"></div>
+
+    <div id="score-screen">
+        <h2 id="score-val"></h2>
+        <p id="score-desc"></p>
+        <button onclick="window.location.reload()">重新挑戰</button>
+    </div>
+
+    <div class="submit-area">
+        <button class="btn-submit" id="main-btn" onclick="processQuiz()">提交 100 題答案</button>
+    </div>
+</div>
+
+<script>
+    // 完整的 100 題資料庫 (Part 1-5)
+    const database = [
+        // PART 1: 1-20 Vocabulary (已經過優化)
+        { q: "The scientist's theory was ________ by new evidence, making it widely accepted.", a: ["corroborated", "contradicted", "diminished", "obliterated"], c: 0 },
+        { q: "After the scandal, the politician's reputation was beyond ________.", a: ["redemption", "negotiation", "observation", "satisfaction"], c: 0 },
+        { q: "She has an ________ ability to predict market trends before they happen.", a: ["inevitable", "uncanny", "ambiguous", "arbitrary"], c: 1 },
+        { q: "The government issued a ________ warning against traveling to the zone.", a: ["stark", "subtle", "fragile", "trivial"], c: 0 },
+        { q: "His speech was so ________ that the audience was moved to tears.", a: ["eloquent", "vague", "redundant", "cynical"], c: 0 },
+        { q: "The company's ________ growth is attributed to its marketing.", a: ["sluggish", "exponential", "negligible", "volatile"], c: 1 },
+        { q: "We must not let our personal biases ________ our professional judgment.", a: ["enhance", "cloud", "clarify", "sustain"], c: 1 },
+        { q: "The ancient ruins were ________ after centuries of neglect.", a: ["deteriorated", "renovated", "integrated", "fabricated"], c: 0 },
+        { q: "Despite his ________ wealth, he lives a very frugal lifestyle.", a: ["immense", "scant", "moderate", "artificial"], c: 0 },
+        { q: "The new policy aims to ________ the gap between the rich and the poor.", a: ["widen", "bridge", "ignore", "perpetuate"], c: 1 },
+        { q: "His argument was ________, leaving no room for doubt.", a: ["fallacious", "compelling", "tentative", "obscure"], c: 1 },
+        { q: "The virus can remain ________ in the body for years.", a: ["vibrant", "dormant", "acute", "prevalent"], c: 1 },
+        { q: "The committee reached a ________ decision after hours of debate.", a: ["unanimous", "discordant", "superficial", "random"], c: 0 },
+        { q: "Technological advancements have ________ many traditional jobs.", a: ["facilitated", "displaced", "retained", "advocated"], c: 1 },
+        { q: "She is ________ for her meticulous attention to detail.", a: ["notorious", "renowned", "anonymous", "indifferent"], c: 1 },
+        { q: "The project was ________ due to a lack of funding.", a: ["commenced", "terminated", "expanded", "accelerated"], c: 1 },
+        { q: "The residents were ________ by the sudden increase in crime.", a: ["appalled", "exhilarated", "content", "indifferent"], c: 0 },
+        { q: "Water is a ________ resource that must be managed carefully.", a: ["finite", "infinite", "abundant", "versatile"], c: 0 },
+        { q: "The instructions were so ________ that even a child could follow.", a: ["complex", "lucid", "ambiguous", "abstract"], c: 1 },
+        { q: "The negotiator tried to ________ the tension between nations.", a: ["escalate", "alleviate", "provoke", "ignore"], c: 1 },
+
+        // PART 2: 21-40 Advanced Grammar
+        { q: "Scarcely ________ the stage when the audience started cheering.", a: ["he had stepped", "had he stepped", "stepped he", "did he stepped"], c: 1 },
+        { q: "It is imperative that the CEO ________ the board of the changes.", a: ["notifies", "notify", "notified", "will notify"], c: 1 },
+        { q: "Were it not for your support, I ________ able to finish this.", a: ["am not", "won't be", "wouldn't be", "haven't been"], c: 2 },
+        { q: "The more he studied the case, ________ he became.", a: ["the more confused", "more confused", "the most confused", "confused"], c: 0 },
+        { q: "I'd rather you ________ me the secret yesterday.", a: ["told", "had told", "tell", "to tell"], c: 1 },
+        { q: "Not only ________ the exam, but he also got the highest score.", a: ["he passed", "did he pass", "passed he", "has he passed"], c: 1 },
+        { q: "The manager insisted that the report ________ by 5 PM.", a: ["be finished", "is finished", "was finished", "will finish"], c: 0 },
+        { q: "Only by working together ________ overcome this obstacle.", a: ["we can", "can we", "could we", "we will"], c: 1 },
+        { q: "Having ________ the book, she was able to discuss it in depth.", a: ["read", "reading", "been read", "to read"], c: 0 },
+        { q: "The building, ________ last year, is now a luxury hotel.", a: ["renovating", "renovated", "was renovated", "having renovated"], c: 1 },
+        { q: "She acted as though she ________ the truth all along.", a: ["knows", "has known", "knew", "know"], c: 2 },
+        { q: "Try ________ he might, he couldn't lift the heavy box.", a: ["as", "if", "unless", "since"], c: 0 },
+        { q: "No sooner ________ home than it started to rain.", a: ["I reached", "had I reached", "did I reach", "I had reached"], c: 1 },
+        { q: "Hardly ________ the engine when it began to smoke.", a: ["I started", "had I started", "start I", "did I start"], c: 1 },
+        { q: "He was seen ________ the building late at night.", a: ["to enter", "entering", "enter", "entered"], c: 1 },
+        { q: "Supposing he ________ to come, what should we do?", a: ["refused", "refuses", "is refusing", "has refused"], c: 0 },
+        { q: "The news ________ so shocking that we couldn't believe it.", a: ["is", "was", "were", "be"], c: 1 },
+        { q: "By the time he arrives, we ________ for three hours.", a: ["will wait", "will have been waiting", "have waited", "wait"], c: 1 },
+        { q: "Should you ________ any problems, call me immediately.", a: ["encounter", "encounters", "encountered", "encountering"], c: 0 },
+        { q: "Everything ________ considered, the event was a success.", a: ["been", "is", "being", "having"], c: 2 },
+
+        // PART 3: 41-60 Idioms & Collocations
+        { q: "He decided to ________ the bull by the horns and face the problem.", a: ["hit", "take", "push", "pull"], c: 1 },
+        { q: "Success at work often comes at the ________ of family time.", a: ["cost", "expense", "price", "loss"], c: 1 },
+        { q: "I'm afraid I'm a bit under the ________ today and can't come in.", a: ["weather", "cloud", "rain", "sun"], c: 0 },
+        { q: "Let's ________ it a day and continue tomorrow morning.", a: ["name", "call", "make", "give"], c: 1 },
+        { q: "His speech really hit the ________ on the head.", a: ["screw", "nail", "hammer", "pin"], c: 1 },
+        { q: "She was over the ________ when she got the job offer.", a: ["stars", "moon", "cloud", "world"], c: 1 },
+        { q: "We need to ________ the ice before the meeting starts.", a: ["melt", "break", "cut", "crack"], c: 1 },
+        { q: "That car costs an arm and a ________.", a: ["foot", "leg", "hand", "head"], c: 1 },
+        { q: "He always tries to ________ around the bush instead of being direct.", a: ["run", "beat", "walk", "jump"], c: 1 },
+        { q: "Don't count your ________ before they hatch.", a: ["birds", "chickens", "eggs", "ducks"], c: 1 },
+        { q: "The project is still up in the ________; nothing is decided.", a: ["sky", "air", "clouds", "wind"], c: 1 },
+        { q: "She has a ________ of gold and always helps others.", a: ["soul", "heart", "mind", "spirit"], c: 1 },
+        { q: "He's a ________ potato who spends all day watching TV.", a: ["couch", "sofa", "bed", "chair"], c: 0 },
+        { q: "I'll keep my ________ crossed for your exam result.", a: ["toes", "fingers", "hands", "arms"], c: 1 },
+        { q: "It's not rocket ________; you can easily learn it.", a: ["math", "science", "physics", "art"], c: 1 },
+        { q: "You should take his advice with a ________ of salt.", a: ["grain", "piece", "spoon", "pinch"], c: 0 },
+        { q: "The ball is in your ________ now; it's your decision.", a: ["field", "court", "hand", "side"], c: 1 },
+        { q: "He's always pulling my ________; he loves joking.", a: ["arm", "leg", "hair", "ear"], c: 1 },
+        { q: "They see eye to ________ on almost every issue.", a: ["eye", "face", "mind", "nose"], c: 0 },
+        { q: "Let's keep an ________ on the time so we aren't late.", a: ["ear", "eye", "watch", "hour"], c: 1 },
+
+        // PART 4: 61-80 Business & Academic Phrases
+        { q: "The company needs to ________ new strategies to stay competitive.", a: ["implement", "abandon", "neglect", "ignore"], c: 0 },
+        { q: "There is a ________ correlation between smoking and lung cancer.", a: ["weak", "strong", "vague", "slight"], c: 1 },
+        { q: "We must ________ the root cause of the problem.", a: ["address", "avoid", "dismiss", "hide"], c: 0 },
+        { q: "The results of the study ________ that the theory is correct.", a: ["imply", "refute", "deny", "contradict"], c: 0 },
+        { q: "The proposal was ________ by the board of directors.", a: ["rejected", "accepted", "ignored", "shelved"], c: 1 },
+        { q: "He is a ________ expert in the field of quantum physics.", a: ["notorious", "prominent", "obscure", "novice"], c: 1 },
+        { q: "The data ________ that our hypothesis was wrong.", a: ["validates", "indicates", "supports", "confirms"], c: 1 },
+        { q: "We need to ________ the risks before making a decision.", a: ["ignore", "assess", "accept", "dismiss"], c: 1 },
+        { q: "The new law will ________ a significant impact on the economy.", a: ["have", "make", "do", "give"], c: 0 },
+        { q: "The project was completed ________ schedule.", a: ["on", "in", "at", "by"], c: 0 },
+        { q: "She has ________ a lot of experience in international trade.", a: ["gained", "lost", "missed", "avoided"], c: 0 },
+        { q: "The meeting was ________ due to unforeseen circumstances.", a: ["postponed", "cancelled", "held", "started"], c: 0 },
+        { q: "We are ________ a new product next month.", a: ["launching", "dropping", "breaking", "ending"], c: 0 },
+        { q: "The report provides a ________ overview of the situation.", a: ["comprehensive", "shallow", "partial", "brief"], c: 0 },
+        { q: "The company aims to ________ its market share.", a: ["decrease", "expand", "reduce", "limit"], c: 1 },
+        { q: "He made a ________ contribution to the research project.", a: ["minor", "substantial", "useless", "tiny"], c: 1 },
+        { q: "We need to ________ the budget for the next fiscal year.", a: ["allocate", "waste", "ignore", "spend"], c: 0 },
+        { q: "The two companies decided to ________ and form a larger entity.", a: ["split", "merge", "break", "divide"], c: 1 },
+        { q: "She is ________ for managing the entire department.", a: ["responsible", "guilty", "reliable", "capable"], c: 0 },
+        { q: "The policy was ________ to improve workplace safety.", a: ["designed", "forced", "destroyed", "stopped"], c: 0 },
+
+        // PART 5: 81-100 Logical & Contextual Discernment
+        { q: "The argument was ________, failing to address the main issue.", a: ["coherent", "irrelevant", "persuasive", "logical"], c: 1 },
+        { q: "He is ________ to succeed because of his hard work.", a: ["unlikely", "bound", "scared", "hesitant"], c: 1 },
+        { q: "The movie was so ________ that I fell asleep halfway through.", a: ["exciting", "tedious", "gripping", "fast-paced"], c: 1 },
+        { q: "She is an ________ reader who finishes three books a week.", a: ["occasional", "avid", "indifferent", "apathetic"], c: 1 },
+        { q: "The witness's testimony was ________, contradicting the facts.", a: ["consistent", "dubious", "reliable", "authentic"], c: 1 },
+        { q: "The weather was ________, with sudden storms and sunshine.", a: ["stable", "capricious", "predictable", "constant"], c: 1 },
+        { q: "His ________ manner made everyone feel welcome.", a: ["hostile", "affable", "arrogant", "cold"], c: 1 },
+        { q: "The situation is ________ and requires immediate action.", a: ["stable", "critical", "trivial", "minor"], c: 1 },
+        { q: "The evidence was ________, proving his innocence beyond doubt.", a: ["flimsy", "conclusive", "vague", "weak"], c: 1 },
+        { q: "He has a ________ memory and never forgets a face.", a: ["poor", "retentive", "failing", "short"], c: 1 },
+        { q: "The job is ________, but the salary is very high.", a: ["easy", "demanding", "simple", "relaxing"], c: 1 },
+        { q: "Her ________ response suggested she was not interested.", a: ["enthusiastic", "lukewarm", "passionate", "eager"], c: 1 },
+        { q: "The landscape was ________, with no trees or water.", a: ["lush", "barren", "vibrant", "green"], c: 1 },
+        { q: "He is ________ about his achievements and never brags.", a: ["proud", "modest", "boastful", "arrogant"], c: 1 },
+        { q: "The instructions were ________, leading to many mistakes.", a: ["clear", "ambiguous", "simple", "direct"], c: 1 },
+        { q: "The city is ________ with tourists during the summer.", a: ["empty", "teeming", "quiet", "deserted"], c: 1 },
+        { q: "His ________ decision-making led to the company's downfall.", a: ["wise", "impulsive", "careful", "rational"], c: 1 },
+        { q: "The scent was so ________ that it filled the entire room.", a: ["faint", "pervasive", "weak", "slight"], c: 1 },
+        { q: "She is ________ of her brother's success.", a: ["proud", "envious", "happy", "excited"], c: 1 },
+        { q: "The sunset was ________, with shades of pink and orange.", a: ["ugly", "spectacular", "ordinary", "dull"], c: 1 }
+    ];
+
+    function render() {
+        const container = document.getElementById('quiz-content');
+        let html = '';
+        const sections = [
+            "Section 1: Advanced Vocabulary (Level 5)",
+            "Section 2: High-level Grammar & Inversion",
+            "Section 3: Native Idioms & Collocations",
+            "Section 4: Academic & Business Contexts",
+            "Section 5: Logical & Nuance Discernment"
+        ];
+
+        database.forEach((item, i) => {
+            if (i % 20 === 0) {
+                html += `<div class="section-header">${sections[i/20]}</div>`;
+            }
+            html += `
+                <div class="q-item" id="q-block-${i}">
+                    <div class="q-text">${i + 1}. ${item.q}</div>
+                    <div class="options">
+                        ${item.a.map((opt, oi) => `
+                            <label class="opt" id="label-${i}-${oi}">
+                                <input type="radio" name="q${i}" value="${oi}"> ${opt}
+                            </label>
+                        `).join('')}
+                    </div>
+                    <div class="ans-hint" id="hint-${i}">正確答案: ${item.a[item.c]}</div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    function processQuiz() {
+        let score = 0;
+        database.forEach((d, i) => {
+            const selected = document.querySelector(`input[name="q${i}"]:checked`);
+            const block = document.getElementById(`q-block-${i}`);
+            const hint = document.getElementById(`hint-${i}`);
+            const correctLabel = document.getElementById(`label-${i}-${d.c}`);
+
+            hint.style.display = 'block';
+            correctLabel.classList.add('is-correct');
+
+            if (selected) {
+                const val = parseInt(selected.value);
+                if (val === d.c) {
+                    score++;
+                } else {
+                    document.getElementById(`label-${i}-${val}`).classList.add('is-wrong');
+                }
+            }
+        });
+
+        // 顯示結果
+        document.getElementById('main-btn').style.display = 'none';
+        const screen = document.getElementById('score-screen');
+        const sVal = document.getElementById('score-val');
+        const sDesc = document.getElementById('score-desc');
+        
+        screen.style.display = 'block';
+        sVal.innerText = `Final Score: ${score} / 100`;
+        
+        if(score >= 90) sDesc.innerText = "Mastery Level. Your English is near-native.";
+        else if(score >= 70) sDesc.innerText = "Advanced Level. Excellent command of nuances.";
+        else if(score >= 50) sDesc.innerText = "Intermediate Level. Good, but need more focus on advanced idioms.";
+        else sDesc.innerText = "Developing Level. Keep practicing Level 5 vocabulary!";
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    render();
+</script>
+
+</body>
+</html>
